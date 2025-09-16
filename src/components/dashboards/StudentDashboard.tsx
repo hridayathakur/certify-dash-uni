@@ -9,6 +9,7 @@ import { CheckCircle, XCircle, Download, Search, QrCode, Share, Eye } from 'luci
 import { Certificate } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import * as QRCode from 'qrcode.react';
+import { downloadCertificate } from '@/utils/fileDownload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 // Demo data
@@ -55,7 +56,11 @@ const mockCertificates: Certificate[] = [
   }
 ];
 
-export function StudentDashboard() {
+interface StudentDashboardProps {
+  activeSection?: string;
+}
+
+export function StudentDashboard({ activeSection = 'pending' }: StudentDashboardProps) {
   const [certificates, setCertificates] = useState<Certificate[]>(mockCertificates);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -84,63 +89,19 @@ export function StudentDashboard() {
   };
 
   const handleDownload = (cert: Certificate) => {
-    // Simulate download
+    downloadCertificate(cert.title, 'John Doe');
     toast({
-      title: 'Download Started',
-      description: `Downloading ${cert.title} certificate...`
+      title: 'Certificate Downloaded',
+      description: `${cert.title} certificate has been downloaded successfully.`
     });
   };
 
   const portfolioUrl = `https://university.edu/portfolio/STU123`;
 
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Certificates</CardTitle>
-            <Badge variant="secondary">{pendingCertificates.length}</Badge>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">{pendingCertificates.length}</div>
-            <p className="text-xs text-muted-foreground">Awaiting your review</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Accepted Certificates</CardTitle>
-            <Badge variant="secondary">{acceptedCertificates.length}</Badge>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">{acceptedCertificates.length}</div>
-            <p className="text-xs text-muted-foreground">Ready for download</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portfolio Score</CardTitle>
-            <Badge variant="secondary">Excellent</Badge>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">85/100</div>
-            <p className="text-xs text-muted-foreground">Based on achievements</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="pending" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="pending">Pending Certificates</TabsTrigger>
-          <TabsTrigger value="accepted">Accepted Certificates</TabsTrigger>
-          <TabsTrigger value="portfolio">Digital Portfolio</TabsTrigger>
-        </TabsList>
-
-        {/* Pending Certificates */}
-        <TabsContent value="pending" className="space-y-4">
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'pending':
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Pending Certificates</CardTitle>
@@ -188,10 +149,10 @@ export function StudentDashboard() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+        );
 
-        {/* Accepted Certificates */}
-        <TabsContent value="accepted" className="space-y-4">
+      case 'accepted':
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Accepted Certificates</CardTitle>
@@ -248,10 +209,10 @@ export function StudentDashboard() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
+        );
 
-        {/* Digital Portfolio */}
-        <TabsContent value="portfolio" className="space-y-4">
+      case 'portfolio':
+        return (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <Card>
@@ -325,8 +286,59 @@ export function StudentDashboard() {
               </Card>
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        );
+
+      default:
+        return (
+          <Card>
+            <CardContent className="p-6">
+              <p>Section not found</p>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Certificates</CardTitle>
+            <Badge variant="secondary">{pendingCertificates.length}</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-warning">{pendingCertificates.length}</div>
+            <p className="text-xs text-muted-foreground">Awaiting your review</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Accepted Certificates</CardTitle>
+            <Badge variant="secondary">{acceptedCertificates.length}</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-success">{acceptedCertificates.length}</div>
+            <p className="text-xs text-muted-foreground">Ready for download</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Portfolio Score</CardTitle>
+            <Badge variant="secondary">Excellent</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">85/100</div>
+            <p className="text-xs text-muted-foreground">Based on achievements</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      {renderContent()}
     </div>
   );
 }

@@ -56,8 +56,11 @@ const mockUploadHistory: UploadRecord[] = [
   }
 ];
 
-export function OrganizerDashboard() {
-  const [activeSection, setActiveSection] = useState('upload');
+interface OrganizerDashboardProps {
+  activeSection?: string;
+}
+
+export function OrganizerDashboard({ activeSection = 'upload' }: OrganizerDashboardProps) {
   const [uploadData, setUploadData] = useState({
     studentIds: '',
     category: '',
@@ -135,73 +138,10 @@ export function OrganizerDashboard() {
     }
   };
 
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Uploads</CardTitle>
-            <Upload className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{uploadHistory.length}</div>
-            <p className="text-xs text-muted-foreground">Certificate uploads</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Students Reached</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {uploadHistory.reduce((acc, record) => acc + record.totalStudents, 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">Total recipients</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Acceptance Rate</CardTitle>
-            <Badge className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {uploadHistory.length > 0 
-                ? Math.round((uploadHistory.reduce((acc, record) => acc + record.acceptedCount, 0) / 
-                   uploadHistory.reduce((acc, record) => acc + record.totalStudents, 0)) * 100)
-                : 0}%
-            </div>
-            <p className="text-xs text-muted-foreground">Average acceptance</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {uploadHistory.filter(record => record.status === 'pending').length}
-            </div>
-            <p className="text-xs text-muted-foreground">Awaiting approval</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="upload">Upload Certificates</TabsTrigger>
-          <TabsTrigger value="history">Upload History</TabsTrigger>
-        </TabsList>
-
-        {/* Upload Certificates */}
-        <TabsContent value="upload" className="space-y-4">
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'upload':
+        return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -303,10 +243,10 @@ export function OrganizerDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        );
 
-        {/* Upload History */}
-        <TabsContent value="history" className="space-y-4">
+      case 'history':
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Upload History</CardTitle>
@@ -365,8 +305,79 @@ export function OrganizerDashboard() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        );
+
+      default:
+        return (
+          <Card>
+            <CardContent className="p-6">
+              <p>Section not found</p>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Uploads</CardTitle>
+            <Upload className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{uploadHistory.length}</div>
+            <p className="text-xs text-muted-foreground">Certificate uploads</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Students Reached</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {uploadHistory.reduce((acc, record) => acc + record.totalStudents, 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">Total recipients</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Acceptance Rate</CardTitle>
+            <Badge className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {uploadHistory.length > 0 
+                ? Math.round((uploadHistory.reduce((acc, record) => acc + record.acceptedCount, 0) / 
+                   uploadHistory.reduce((acc, record) => acc + record.totalStudents, 0)) * 100)
+                : 0}%
+            </div>
+            <p className="text-xs text-muted-foreground">Average acceptance</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {uploadHistory.filter(record => record.status === 'pending').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting approval</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      {renderContent()}
     </div>
   );
 }

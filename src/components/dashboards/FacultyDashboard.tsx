@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,6 +22,7 @@ import {
 import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, Pie } from 'recharts';
 import { Certificate, NAACCriteria } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { downloadNAACReport, downloadCSVTemplate } from '@/utils/fileDownload';
 
 // Mock data
 const mockAnalytics = {
@@ -60,8 +60,11 @@ const naacCriteria: NAACCriteria[] = [
   { id: '5.2.3', code: '5.2.3', title: 'Student Participation', description: 'Number of students participated in extracurricular activities' }
 ];
 
-export function FacultyDashboard() {
-  const [activeSection, setActiveSection] = useState('upload');
+interface FacultyDashboardProps {
+  activeSection?: string;
+}
+
+export function FacultyDashboard({ activeSection = 'upload' }: FacultyDashboardProps) {
   const [uploadData, setUploadData] = useState({
     studentIds: '',
     category: '',
@@ -74,9 +77,18 @@ export function FacultyDashboard() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
+      // Simulate processing and create downloadable file
+      setTimeout(() => {
+        downloadCSVTemplate();
+        toast({
+          title: 'Files Processed & Template Downloaded',
+          description: `${files.length} file(s) processed. Sample template downloaded.`
+        });
+      }, 1000);
+      
       toast({
-        title: 'Files Uploaded',
-        description: `${files.length} file(s) uploaded successfully for processing.`
+        title: 'Files Uploading',
+        description: `Processing ${files.length} file(s)...`
       });
     }
   };
@@ -123,9 +135,10 @@ export function FacultyDashboard() {
     });
 
     setTimeout(() => {
+      downloadNAACReport(selectedCriteria);
       toast({
-        title: 'Report Generated',
-        description: 'NAAC compliance report has been generated successfully.'
+        title: 'Report Generated & Downloaded',
+        description: 'NAAC compliance report has been generated and downloaded successfully.'
       });
     }, 3000);
   };
@@ -138,66 +151,10 @@ export function FacultyDashboard() {
     );
   };
 
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Certificates</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">150</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">250</div>
-            <p className="text-xs text-muted-foreground">Participating students</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Acceptance Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">94%</div>
-            <p className="text-xs text-muted-foreground">+2% from last month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">NAAC Score</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">A++</div>
-            <p className="text-xs text-muted-foreground">Grade based on data</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="upload">Upload Certificates</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="naac">NAAC Reports</TabsTrigger>
-          <TabsTrigger value="manage">Manage Records</TabsTrigger>
-        </TabsList>
-
-        {/* Upload Certificates */}
-        <TabsContent value="upload" className="space-y-4">
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'upload':
+        return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -294,10 +251,10 @@ export function FacultyDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        );
 
-        {/* Analytics */}
-        <TabsContent value="analytics" className="space-y-4">
+      case 'analytics':
+        return (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -363,10 +320,10 @@ export function FacultyDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        );
 
-        {/* NAAC Reports */}
-        <TabsContent value="naac" className="space-y-4">
+      case 'naac':
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Generate NAAC Reports</CardTitle>
@@ -410,10 +367,10 @@ export function FacultyDashboard() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        );
 
-        {/* Manage Records */}
-        <TabsContent value="manage" className="space-y-4">
+      case 'manage':
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Student Records Management</CardTitle>
@@ -434,36 +391,107 @@ export function FacultyDashboard() {
                   <TableRow>
                     <TableCell>STU123</TableCell>
                     <TableCell>John Doe</TableCell>
-                    <TableCell>4 certificates</TableCell>
-                    <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+                    <TableCell>4</TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline">View Details</Button>
+                      <Badge variant="outline">Active</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          View Details
+                        </Button>
+                        <Button size="sm" variant="destructive">
+                          Revoke Certificate
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>STU124</TableCell>
                     <TableCell>Jane Smith</TableCell>
-                    <TableCell>2 certificates</TableCell>
-                    <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+                    <TableCell>2</TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline">View Details</Button>
+                      <Badge variant="outline">Active</Badge>
                     </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>STU125</TableCell>
-                    <TableCell>Mike Johnson</TableCell>
-                    <TableCell>6 certificates</TableCell>
-                    <TableCell><Badge variant="secondary">Active</Badge></TableCell>
                     <TableCell>
-                      <Button size="sm" variant="outline">View Details</Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          View Details
+                        </Button>
+                        <Button size="sm" variant="destructive">
+                          Revoke Certificate
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        );
+
+      default:
+        return (
+          <Card>
+            <CardContent className="p-6">
+              <p>Section not found</p>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Certificates</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">150</div>
+            <p className="text-xs text-muted-foreground">+12% from last month</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Students</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">250</div>
+            <p className="text-xs text-muted-foreground">Participating students</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Acceptance Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">94%</div>
+            <p className="text-xs text-muted-foreground">+2% from last month</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">NAAC Score</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">A++</div>
+            <p className="text-xs text-muted-foreground">Grade based on data</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      {renderContent()}
     </div>
   );
 }

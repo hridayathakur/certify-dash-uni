@@ -18,18 +18,18 @@ export function MainDashboard() {
   const renderDashboard = () => {
     switch (user.role) {
       case 'student':
-        return <StudentDashboard />;
+        return <StudentDashboard activeSection={activeSection} />;
       case 'faculty':
-        return <FacultyDashboard />;
+        return <FacultyDashboard activeSection={activeSection} />;
       case 'organizer':
-        return <OrganizerDashboard />;
+        return <OrganizerDashboard activeSection={activeSection} />;
       default:
         return <div>Invalid role</div>;
     }
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout activeSection={activeSection} onSectionChange={setActiveSection}>
       {renderDashboard()}
     </DashboardLayout>
   );
